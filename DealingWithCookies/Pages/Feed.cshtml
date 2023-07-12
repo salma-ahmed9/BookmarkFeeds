@@ -1,0 +1,19 @@
+﻿@page "/Feed"
+@model DealingWithCookies.Pages.FeedModel
+@{
+}
+@foreach (var item in Model.RssItemsList)
+{
+    <div class="card">
+        <div class="card-body">
+            <h4>@item.PublishDate</h4>
+            <h5>@item.Title</h5>
+            <p>@item.Description</p>
+            <a href="@item.Link" class="container-link" target="_blank">
+                <button type="button" class="btn btn-primary ">Link</button>
+            </a>
+        </div>
+
+    </div>
+    <br />
+}

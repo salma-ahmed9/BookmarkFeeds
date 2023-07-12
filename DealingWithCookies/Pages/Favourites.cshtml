@@ -1,0 +1,42 @@
+﻿@page "/Favourites"
+@using System.Text.Json;
+@using System.Web;
+@model DealingWithCookies.Pages.FavouritesModel
+@{
+}
+<h1>Favourite Feeds</h1>
+
+@if (Request.Cookies["favouriteFeeds"] is null)
+{
+    <p>No favourite feeds selected.</p>
+}
+else
+{
+    @foreach (var feedLink in Model.FavouriteFeedList)
+    {
+        <div class="card" @(feedLink.Visible ? "" : "style=\"display:none;\"")>
+           <div class="card-body">
+               <div class="title-section" style="display:flex; justify-content:space-between">
+                   <h4>@feedLink.FeedTitle</h4>
+                    <form method="post" asp-page="/Favourites" asp-route-feedLink="@feedLink.FeedLink" asp-route-feedTitle="@feedLink.FeedTitle">
+                            <input type="hidden" name="feedLink" value="@feedLink.FeedLink" />
+                            <input type="hidden" name="feedTitle" value="@feedLink.FeedTitle" />
+                            <button type="submit" class="btn btn-orange" style="font-size:15px; color:white">unstar</button>
+                            <style>
+                                .btn-orange {
+                                    background-color: orange;
+                                    color: black;
+                                }
+                            </style>
+                        </form>
+               </div>
+                    <a asp-page="/Feed" asp-route-message="@feedLink.FeedLink" target="_blank">
+                        <button type="submit" class="btn btn-primary" style="background-color: darkblue">Link</button>
+                    </a>
+           </div>
+       </div>
+        
+        
+        <br />
+    }
+}
