@@ -38,7 +38,6 @@ public class FeedModel : PageModel
                 rssList.Add(rssObject);
             }
         }
-        httpClient.Dispose();
         return rssList;
     }
     public async Task<IActionResult> OnGetAsync()

@@ -41,20 +41,20 @@ public class FavouritesModel : PageModel
             favouriteFeeds.Add(feedObject);
         }
         FavouriteFeedList = favouriteFeeds;
-        for (int i = 0; i < feeds.Length; i++)
+        foreach(var feed in feeds)
         {
-            if (feeds[i] == (feedLink + "|" + feedTitle))
+            if (feed == (feedLink + "|" + feedTitle))
             {
-                feeds = feeds.Where((val, idx) => idx != i).ToArray();
-                foreach(var item in FavouriteFeedList)
+                feeds = feeds.Where(val => val != feed).ToArray();
+                foreach (var item in FavouriteFeedList)
                 {
-                    if(item.FeedTitle==feedTitle && item.FeedLink==feedLink)
+                    if (item.FeedTitle == feedTitle && item.FeedLink == feedLink)
                     {
                         item.Visible = false;
                         break;
                     }
                 }
-                
+
             }
         }
         favouriteFeed = string.Join(",", feeds);

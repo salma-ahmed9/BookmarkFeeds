@@ -6,8 +6,6 @@ namespace DealingWithCookies.Pages;
 public class IndexModel : PageModel
 {
     private readonly IHttpClientFactory _clientFactory;
-    
-
     public IndexModel(IHttpClientFactory clientFactory)
     {
         _clientFactory = clientFactory;
@@ -120,12 +118,6 @@ public class IndexModel : PageModel
         RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
         CurrentPage = pageNumber;
         ViewData["TotalPages"] = totalPages;
-        /*Response.Cookies.Delete("favouriteFeeds", new CookieOptions
-        {
-            Path = "/",
-            Expires = DateTime.UtcNow.AddDays(-1) // set the cookie to expire in the past
-        });*/
-
         return  RedirectToPage("/Index", new { pageNumber = CurrentPage, itemsPerPage=5}); ;
     }
 }
