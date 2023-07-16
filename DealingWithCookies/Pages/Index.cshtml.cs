@@ -25,7 +25,7 @@ public class IndexModel : PageModel
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(responseData);
             XmlNodeList? nodes = doc.DocumentElement?.GetElementsByTagName("outline");
-            string favourites = Request.Cookies["favouriteFeeds"];
+            string favourites = Request.Cookies["favourites"];
             foreach (XmlNode node in nodes)
             {
                 RssFeed feedObject = new RssFeed();
@@ -70,9 +70,9 @@ public class IndexModel : PageModel
     {
         string feedLink = Request.Form["feedLink"];
         string feedTitle = Request.Form["feedTitle"];
-        string favouriteFeed = Request.Cookies["favouriteFeeds"];
+        string favouriteFeed = Request.Cookies["favourites"];
         bool indicator = false;
-        if (favouriteFeed is not null)
+        if (!string.IsNullOrEmpty(favouriteFeed))
         {
             string[] feeds = favouriteFeed.Split(',');
             for(int i=0; i<feeds.Length;i++)
@@ -97,7 +97,7 @@ public class IndexModel : PageModel
             favouriteFeed = feedLink + "|" + feedTitle;
         }
        
-        Response.Cookies.Append("favouriteFeeds", favouriteFeed, new CookieOptions
+        Response.Cookies.Append("favourites", favouriteFeed, new CookieOptions
         {
             Secure = Request.IsHttps,
             Path = "/",

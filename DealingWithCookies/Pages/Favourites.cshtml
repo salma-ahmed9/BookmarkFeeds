@@ -6,7 +6,7 @@
 }
 <h1>Favourite Feeds</h1>
 
-@if (Request.Cookies["favouriteFeeds"] is null)
+@if (string.IsNullOrEmpty(Request.Cookies["favourites"]))
 {
     <p>No favourite feeds selected.</p>
 }

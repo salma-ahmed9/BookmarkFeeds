@@ -13,14 +13,14 @@ public class FavouritesModel : PageModel
     public List<FavouriteFeed> FavouriteFeedList { get; private set; } = new();
     public void OnGet()
     {
-        if (Request.Cookies["favouriteFeeds"] is not null)
+        if (!string.IsNullOrEmpty(Request.Cookies["favourites"]))
         {
-            FeedsInfo = Request.Cookies["favouriteFeeds"].Split(',').ToList();
+            FeedsInfo = Request.Cookies["favourites"].Split(',').ToList();
             foreach(var feed in FeedsInfo)
             {
                 FavouriteFeed feedObject = new FavouriteFeed();
                 feedObject.FeedTitle = feed.Substring(feed.IndexOf('|') + 1);
-                feedObject.FeedLink= feed.Substring(0,feed.IndexOf('|'));
+                feedObject.FeedLink = feed.Substring(0, feed.IndexOf('|'));
                 FavouriteFeedList.Add(feedObject);
             }
         }
@@ -29,16 +29,16 @@ public class FavouritesModel : PageModel
     {
         string feedLink = Request.Form["feedLink"];
         string feedTitle = Request.Form["feedTitle"];
-        string favouriteFeed = Request.Cookies["favouriteFeeds"];
+        string favouriteFeed = Request.Cookies["favourites"];
         string[] feeds = favouriteFeed.Split(',');
         List<string> myFeeds = feeds.ToList();
         List<FavouriteFeed> favouriteFeeds = new List<FavouriteFeed>();
         foreach (var feed in myFeeds)
         {
-            FavouriteFeed feedObject = new FavouriteFeed();
-            feedObject.FeedTitle = feed.Substring(feed.IndexOf('|') + 1);
-            feedObject.FeedLink = feed.Substring(0, feed.IndexOf('|'));
-            favouriteFeeds.Add(feedObject);
+             FavouriteFeed feedObject = new FavouriteFeed();
+             feedObject.FeedTitle = feed.Substring(feed.IndexOf('|') + 1);
+             feedObject.FeedLink = feed.Substring(0, feed.IndexOf('|'));
+             favouriteFeeds.Add(feedObject);
         }
         FavouriteFeedList = favouriteFeeds;
         foreach(var feed in feeds)
@@ -58,7 +58,7 @@ public class FavouritesModel : PageModel
             }
         }
         favouriteFeed = string.Join(",", feeds);
-        Response.Cookies.Append("favouriteFeeds", favouriteFeed, new CookieOptions
+        Response.Cookies.Append("favourites", favouriteFeed, new CookieOptions
         {
             Secure = Request.IsHttps,
             Path = "/",
