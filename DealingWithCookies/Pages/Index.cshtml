@@ -3,57 +3,84 @@
 @{
     ViewData["Title"] = "Home page";
 }
+@Html.AntiForgeryToken()
 <!DOCTYPE html>
 <html>
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-@foreach (var item in Model.RssFeedList)
-{
-    <div class="card">
-        <div class="card-body" style="background-color:aliceblue;">
+    @foreach (var item in Model.RssFeedList)
+    {
+        <div class="card">
+            <div class="card-body" style="background-color:aliceblue;">
                 <div class="title-section" style="display:flex; justify-content:space-between">
                     <h6 style="font-size:25px; font-family:'Ink Free' ;font-weight:700; ">@item.FeedTitle</h6>
-                    <form method="post" asp-page="/Index" asp-route-feedLink="@item.FeedLink" asp-route-feedTitle="@item.FeedTitle" asp-route-pageNumber="@Model.CurrentPage">
-                        <input type="hidden" name="feedLink" value="@item.FeedLink" />
-                        <input type="hidden" name="feedTitle" value="@item.FeedTitle" />
+                    <form id="myForm">
                         @if (@item.IsFavourite)
                         {
-                            <button type="submit" class="btn btn-orange"><i class="fa fa-star"></i></button>
+                            <button type="button" id="submit" class="btn btn-orange callAjax" data-title="@item.FeedTitle" data-link="@item.FeedLink" ><i class="fa fa-star"></i></button>
                         }
                         else
                         {
-                            <button type="submit" class="btn btn-light"><i class="fa fa-star"></i></button>
+                            <button type="button" id="submit" class="btn btn-light callAjax" data-title="@item.FeedTitle" data-link="@item.FeedLink" ><i class="fa fa-star"></i></button>
                         }
-
                         <style>
                             .btn-white {
-                               
-                                border:1px black;
+                                border: 1px black;
                                 color: white;
                             }
 
                             .btn-orange {
-                                background-color:orange;
+                                background-color: orange;
                                 color: black;
-                                
                             }
                         </style>
                     </form>
                 </div>
-               
-            <a asp-page="/Feed" asp-route-message="@item.FeedLink" target="_blank">
-                <button type="submit" class="btn btn-primary" style="background-color: darkblue">Link</button>
-            </a>
+            </div>
         </div>
-    </div>
-    <br />
+        <br />
+    }
+   
+@section Scripts
+{
+    <script type="text/javascript">
+         $(".callAjax").click(function () {
+            var button = $(this);
+            var feedTitle = $(this).data("title");
+            var link = $(this).data("link");
+            $.ajax({
+              type: "POST",
+              url: "/?handler=GetAjax&pageNumber=@Model.CurrentPage",
+              contentType: 'application/x-www-form-urlencoded',
+              data: { 
+              "feedTitle":feedTitle,
+              "link":link
+              },
+              dataType: "json",
+              headers:
+              {
+               "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val()
+              },
+              success: function (result) {
+                 if(result.message=="False")
+                 {
+                    button.removeClass('btn-light').addClass('btn-orange');
+                 }
+                 else
+                 {
+                    button.removeClass('btn-orange').addClass('btn-light');
+                 }
+              }
+            });
+         });
+    </script>
 }
-
-
 </body>
 </html>
+
 @if (ViewData["TotalPages"] != null && (int)ViewData["TotalPages"] > 1)
 {
     <div class="pagination">

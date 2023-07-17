@@ -4,11 +4,13 @@
 @model DealingWithCookies.Pages.FavouritesModel
 @{
 }
+@Html.AntiForgeryToken()
 <h1>Favourite Feeds</h1>
+<p id="message"></p>
 
 @if (string.IsNullOrEmpty(Request.Cookies["favourites"]))
 {
-    <p>No favourite feeds selected.</p>
+    <p id="message">No favourite feeds selected.</p>
 }
 else
 {
@@ -18,10 +20,8 @@ else
            <div class="card-body">
                <div class="title-section" style="display:flex; justify-content:space-between">
                    <h4>@feedLink.FeedTitle</h4>
-                    <form method="post" asp-page="/Favourites" asp-route-feedLink="@feedLink.FeedLink" asp-route-feedTitle="@feedLink.FeedTitle">
-                            <input type="hidden" name="feedLink" value="@feedLink.FeedLink" />
-                            <input type="hidden" name="feedTitle" value="@feedLink.FeedTitle" />
-                            <button type="submit" class="btn btn-orange" style="font-size:15px; color:white">unstar</button>
+                    <form id="myFavouritesForm">
+                        <button type="button" id="submit" class="btn btn-orange callAjaxRequest" data-title="@feedLink.FeedTitle" data-link="@feedLink.FeedLink"  style="font-size:15px; color:white">unstar</button>
                             <style>
                                 .btn-orange {
                                     background-color: orange;
@@ -35,8 +35,39 @@ else
                     </a>
            </div>
        </div>
-        
-        
-        <br />
+       <br />
     }
 }
+@section Scripts
+    {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        $(".callAjaxRequest").click(function () {
+            var button = $(this);
+            var feedTitle = $(this).data("title");
+            var link = $(this).data("link");
+            $.ajax({
+                type: "POST",
+                url: "/Favourites?handler=GetAjaxRequest",
+                contentType: 'application/x-www-form-urlencoded',
+                data: {
+                    "feedTitle": feedTitle,
+                    "link": link
+                },
+                dataType: "json",
+                headers:
+                {
+                    "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val()
+                },
+                success: function (result) {
+                    var visibleCards = $(".card:visible");
+                    button.closest(".card").hide();
+                    if(visibleCards.length==1)
+                    {
+                        $("#message").text("No favourite feeds selected. ")
+                    }
+        }
+            });
+        });
+    </script>
+ }

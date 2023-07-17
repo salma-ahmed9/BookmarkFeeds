@@ -5,6 +5,8 @@ using System.Xml;
 namespace DealingWithCookies.Pages;
 public class IndexModel : PageModel
 {
+   
+
     private readonly IHttpClientFactory _clientFactory;
     public IndexModel(IHttpClientFactory clientFactory)
     {
@@ -12,7 +14,6 @@ public class IndexModel : PageModel
     }
     public List<RssFeed> RssFeedList { get; private set; } = new();
     public int CurrentPage { get; private set; }
-
     public async Task<List<RssFeed>> FetchParse()
     {
         List<RssFeed> feedList = new List<RssFeed>();
@@ -51,33 +52,30 @@ public class IndexModel : PageModel
     }
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1, int itemsPerPage = 5)
     {
-        var myFeedList = await FetchParse();
-        int startIndex = (pageNumber - 1) * itemsPerPage;
-        int totalItems = myFeedList.Count;
-        int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-        if (startIndex >= totalItems)
-        {
-            startIndex = (totalPages - 1) * itemsPerPage;
-            pageNumber = totalPages;
-        }
-        RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
-        CurrentPage = pageNumber;
-        ViewData["TotalPages"] = totalPages;
-        return Page();
+         var myFeedList = await FetchParse();
+         int startIndex = (pageNumber - 1) * itemsPerPage;
+         int totalItems = myFeedList.Count;
+         int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+         if (startIndex >= totalItems)
+         {
+             startIndex = (totalPages - 1) * itemsPerPage;
+             pageNumber = totalPages;
+         }
+         RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
+         CurrentPage = pageNumber;
+         ViewData["TotalPages"] = totalPages;
+         return Page();
     }
-
-    public async Task<IActionResult> OnPost(int pageNumber = 1, int itemsPerPage = 5)
+    public async Task<IActionResult> OnPostGetAjax(string feedTitle,string link)
     {
-        string feedLink = Request.Form["feedLink"];
-        string feedTitle = Request.Form["feedTitle"];
         string favouriteFeed = Request.Cookies["favourites"];
         bool indicator = false;
         if (!string.IsNullOrEmpty(favouriteFeed))
         {
             string[] feeds = favouriteFeed.Split(',');
-            for(int i=0; i<feeds.Length;i++)
+            for (int i = 0; i < feeds.Length; i++)
             {
-                if (feeds[i]==(feedLink + "|" + feedTitle))
+                if (feeds[i] == (link + "|" + feedTitle))
                 {
                     feeds = feeds.Where((val, idx) => idx != i).ToArray();
                     indicator = true;
@@ -87,38 +85,24 @@ public class IndexModel : PageModel
             favouriteFeed = string.Join(",", feeds);
             if (!indicator)
             {
-
-                favouriteFeed += "," + feedLink + "|" + feedTitle;
-                indicator = true;
+                favouriteFeed += "," + link + "|" + feedTitle;
             }
         }
         else
         {
-            favouriteFeed = feedLink + "|" + feedTitle;
+            favouriteFeed = link + "|" + feedTitle;
         }
-       
         Response.Cookies.Append("favourites", favouriteFeed, new CookieOptions
         {
             Secure = Request.IsHttps,
             Path = "/",
             IsEssential = true,
-            SameSite= SameSiteMode.None,
+            SameSite = SameSiteMode.None,
             Domain = "localhost",
-            HttpOnly= false
+            HttpOnly = false
         });
-        var myFeedList = await FetchParse();
-        int startIndex = (pageNumber - 1) * itemsPerPage;
-        int totalItems = myFeedList.Count;
-        int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-        if (startIndex >= totalItems)
-        {
-            startIndex = (totalPages - 1) * itemsPerPage;
-            pageNumber = totalPages;
-        }
-        RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
-        CurrentPage = pageNumber;
-        ViewData["TotalPages"] = totalPages;
-        return  RedirectToPage("/Index", new { pageNumber = CurrentPage, itemsPerPage=5}); ;
+        var response = new { message = indicator.ToString()};
+        return new JsonResult(response);
     }
 }
 public class RssFeed

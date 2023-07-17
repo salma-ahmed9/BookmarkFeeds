@@ -9,6 +9,8 @@ namespace DealingWithCookies.Pages;
 
 public class FavouritesModel : PageModel
 {
+    [BindProperty]
+    public FavouriteFeed FavouriteFeed { get; set; }
     public List<string> FeedsInfo { get; set; } = new();
     public List<FavouriteFeed> FavouriteFeedList { get; private set; } = new();
     public void OnGet()
@@ -25,14 +27,13 @@ public class FavouritesModel : PageModel
             }
         }
     }
-    public async Task<IActionResult> OnPost()
+    public async Task<IActionResult> OnPostGetAjaxRequest(string feedTitle, string link)
     {
-        string feedLink = Request.Form["feedLink"];
-        string feedTitle = Request.Form["feedTitle"];
         string favouriteFeed = Request.Cookies["favourites"];
         string[] feeds = favouriteFeed.Split(',');
         List<string> myFeeds = feeds.ToList();
         List<FavouriteFeed> favouriteFeeds = new List<FavouriteFeed>();
+        bool isFavourite = true;
         foreach (var feed in myFeeds)
         {
              FavouriteFeed feedObject = new FavouriteFeed();
@@ -43,14 +44,15 @@ public class FavouritesModel : PageModel
         FavouriteFeedList = favouriteFeeds;
         foreach(var feed in feeds)
         {
-            if (feed == (feedLink + "|" + feedTitle))
+            if (feed == (link+ "|" + feedTitle))
             {
                 feeds = feeds.Where(val => val != feed).ToArray();
                 foreach (var item in FavouriteFeedList)
                 {
-                    if (item.FeedTitle == feedTitle && item.FeedLink == feedLink)
+                    if (item.FeedTitle == feedTitle && item.FeedLink == link)
                     {
                         item.Visible = false;
+                        isFavourite = false;
                         break;
                     }
                 }
@@ -67,7 +69,8 @@ public class FavouritesModel : PageModel
             Domain = "localhost",
             HttpOnly = false
         });
-        return RedirectToPage("/Favourites");
+        var response = new { message = isFavourite.ToString() };
+        return new JsonResult(response);
     }
 }
 public class FavouriteFeed
