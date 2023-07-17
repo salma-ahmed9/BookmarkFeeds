@@ -5,8 +5,6 @@ using System.Xml;
 namespace DealingWithCookies.Pages;
 public class IndexModel : PageModel
 {
-   
-
     private readonly IHttpClientFactory _clientFactory;
     public IndexModel(IHttpClientFactory clientFactory)
     {
