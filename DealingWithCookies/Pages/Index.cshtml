@@ -20,11 +20,11 @@
                     <form id="myForm">
                         @if (@item.IsFavourite)
                         {
-                            <button type="button" id="submit" class="btn btn-orange callAjax" data-title="@item.FeedTitle" data-link="@item.FeedLink" ><i class="fa fa-star"></i></button>
+                            <button type="button" onclick="postData('@item.FeedTitle','@item.FeedLink',this)"  class="btn btn-orange"><i class="fa fa-star"></i></button>
                         }
                         else
                         {
-                            <button type="button" id="submit" class="btn btn-light callAjax" data-title="@item.FeedTitle" data-link="@item.FeedLink" ><i class="fa fa-star"></i></button>
+                            <button type="button"  onclick="postData('@item.FeedTitle','@item.FeedLink',this)" class="btn btn-light "  ><i class="fa fa-star"></i></button>
                         }
                         <style>
                             .btn-white {
@@ -46,36 +46,32 @@
    
 @section Scripts
 {
-    <script type="text/javascript">
-         $(".callAjax").click(function () {
-            var button = $(this);
-            var feedTitle = $(this).data("title");
-            var link = $(this).data("link");
-            $.ajax({
-              type: "POST",
-              url: "/?handler=GetAjax&pageNumber=@Model.CurrentPage",
-              contentType: 'application/x-www-form-urlencoded',
-              data: { 
-              "feedTitle":feedTitle,
-              "link":link
+    <script>
+      async function postData(feedTitle,link,button) {
+          const data = {
+              feedTitle: feedTitle,
+              feedLink: link
+          }
+          fetch('/fav', {
+              method: 'POST',
+              headers: {
+                  "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val(),
+                  "Content-Type": 'application/json'
               },
-              dataType: "json",
-              headers:
-              {
-               "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val()
-              },
-              success: function (result) {
-                 if(result.message=="False")
-                 {
-                    button.removeClass('btn-light').addClass('btn-orange');
-                 }
-                 else
-                 {
-                    button.removeClass('btn-orange').addClass('btn-light');
-                 }
-              }
-            });
-         });
+              body: JSON.stringify(data)
+          }).then(response => response.json())
+            .then(data => {
+               if (data.message == 'False') {
+                   console.log(data.message);
+                   button.classList.remove('btn-light');
+                   button.classList.add('btn-orange');
+               } else {
+                   console.log(data.message);
+                   button.classList.remove('btn-orange');
+                   button.classList.add('btn-light');
+               }
+            }).catch(error => console.error(error));
+      }
     </script>
 }
 </body>

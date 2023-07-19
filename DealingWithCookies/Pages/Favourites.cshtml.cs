@@ -27,8 +27,10 @@ public class FavouritesModel : PageModel
             }
         }
     }
-    public async Task<IActionResult> OnPostGetAjaxRequest(string feedTitle, string link)
+    /*public async Task<IActionResult> OnPostGetAjaxRequest([FromBody] FavouriteFeed favouriteFeedObject)
     {
+        string feedTitle = favouriteFeedObject.FeedTitle;
+        string link = favouriteFeedObject.FeedLink;
         string favouriteFeed = Request.Cookies["favourites"];
         string[] feeds = favouriteFeed.Split(',');
         List<string> myFeeds = feeds.ToList();
@@ -71,7 +73,7 @@ public class FavouritesModel : PageModel
         });
         var response = new { message = isFavourite.ToString() };
         return new JsonResult(response);
-    }
+    }*/
 }
 public class FavouriteFeed
 {

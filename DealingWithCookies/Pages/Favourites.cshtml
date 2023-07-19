@@ -16,12 +16,12 @@ else
 {
     @foreach (var feedLink in Model.FavouriteFeedList)
     {
-        <div class="card" @(feedLink.Visible ? "" : "style=\"display:none;\"")>
-           <div class="card-body">
+        <div id="card"  @(feedLink.Visible ? "style=\"display:block;\"" : "style=\"display:none;\"")>
+            <div class="card-body" style="background-color:aliceblue;">
                <div class="title-section" style="display:flex; justify-content:space-between">
                    <h4>@feedLink.FeedTitle</h4>
                     <form id="myFavouritesForm">
-                        <button type="button" id="submit" class="btn btn-orange callAjaxRequest" data-title="@feedLink.FeedTitle" data-link="@feedLink.FeedLink"  style="font-size:15px; color:white">unstar</button>
+                        <button type="button" class="btn btn-orange" onclick="UnstarData('@feedLink.FeedTitle','@feedLink.FeedLink',this)" style="font-size:15px; color:white">unstar</button>
                             <style>
                                 .btn-orange {
                                     background-color: orange;
@@ -41,33 +41,28 @@ else
 @section Scripts
     {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript">
-        $(".callAjaxRequest").click(function () {
-            var button = $(this);
-            var feedTitle = $(this).data("title");
-            var link = $(this).data("link");
-            $.ajax({
-                type: "POST",
-                url: "/Favourites?handler=GetAjaxRequest",
-                contentType: 'application/x-www-form-urlencoded',
-                data: {
-                    "feedTitle": feedTitle,
-                    "link": link
+    <script>
+        async function UnstarData(feedTitle, link, button) {
+            const data = {
+                feedTitle: feedTitle,
+                feedLink: link
+            }
+            fetch('/Unfav', {
+                method: 'POST',
+                headers: {
+                    "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val(),
+                    "Content-Type": 'application/json'
                 },
-                dataType: "json",
-                headers:
-                {
-                    "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val()
-                },
-                success: function (result) {
-                    var visibleCards = $(".card:visible");
-                    button.closest(".card").hide();
-                    if(visibleCards.length==1)
-                    {
-                        $("#message").text("No favourite feeds selected. ")
+                body: JSON.stringify(data)
+            }).then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+                    const clickedButton = button.closest("button");
+                    const card = clickedButton.closest("#card");
+                    if (card) {
+                        card.style.display = "none";
                     }
+                }).catch(error => console.error(error));
         }
-            });
-        });
     </script>
  }

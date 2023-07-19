@@ -30,10 +30,10 @@ public class IndexModel : PageModel
                 RssFeed feedObject = new RssFeed();
                 feedObject.FeedTitle = node.Attributes?["text"]?.Value;
                 feedObject.FeedLink = node.Attributes?["xmlUrl"]?.Value;
-                if(favourites is not null)
+                if (favourites is not null)
                 {
-                    string[]favourite =  favourites.Split(',');
-                    for(int i=0; i<favourite.Length;i++)
+                    string[] favourite = favourites.Split(',');
+                    for (int i = 0; i < favourite.Length; i++)
                     {
                         if (favourite[i] == (feedObject.FeedLink + "|" + feedObject.FeedTitle))
                         {
@@ -50,57 +50,19 @@ public class IndexModel : PageModel
     }
     public async Task<IActionResult> OnGetAsync(int pageNumber = 1, int itemsPerPage = 5)
     {
-         var myFeedList = await FetchParse();
-         int startIndex = (pageNumber - 1) * itemsPerPage;
-         int totalItems = myFeedList.Count;
-         int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
-         if (startIndex >= totalItems)
-         {
-             startIndex = (totalPages - 1) * itemsPerPage;
-             pageNumber = totalPages;
-         }
-         RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
-         CurrentPage = pageNumber;
-         ViewData["TotalPages"] = totalPages;
-         return Page();
-    }
-    public async Task<IActionResult> OnPostGetAjax(string feedTitle,string link)
-    {
-        string favouriteFeed = Request.Cookies["favourites"];
-        bool indicator = false;
-        if (!string.IsNullOrEmpty(favouriteFeed))
+        var myFeedList = await FetchParse();
+        int startIndex = (pageNumber - 1) * itemsPerPage;
+        int totalItems = myFeedList.Count;
+        int totalPages = (int)Math.Ceiling((double)totalItems / itemsPerPage);
+        if (startIndex >= totalItems)
         {
-            string[] feeds = favouriteFeed.Split(',');
-            for (int i = 0; i < feeds.Length; i++)
-            {
-                if (feeds[i] == (link + "|" + feedTitle))
-                {
-                    feeds = feeds.Where((val, idx) => idx != i).ToArray();
-                    indicator = true;
-                    break;
-                }
-            }
-            favouriteFeed = string.Join(",", feeds);
-            if (!indicator)
-            {
-                favouriteFeed += "," + link + "|" + feedTitle;
-            }
+            startIndex = (totalPages - 1) * itemsPerPage;
+            pageNumber = totalPages;
         }
-        else
-        {
-            favouriteFeed = link + "|" + feedTitle;
-        }
-        Response.Cookies.Append("favourites", favouriteFeed, new CookieOptions
-        {
-            Secure = Request.IsHttps,
-            Path = "/",
-            IsEssential = true,
-            SameSite = SameSiteMode.None,
-            Domain = "localhost",
-            HttpOnly = false
-        });
-        var response = new { message = indicator.ToString()};
-        return new JsonResult(response);
+        RssFeedList = myFeedList.GetRange(startIndex, Math.Min(itemsPerPage, totalItems - startIndex));
+        CurrentPage = pageNumber;
+        ViewData["TotalPages"] = totalPages;
+        return Page();
     }
 }
 public class RssFeed
