@@ -42,16 +42,34 @@ else
     {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        async function antiforgeryToken() {
+            var response = await fetch("/antiforgerytoken", {
+                method: "GET",
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const xsrfToken = document.cookie
+                    .split("; ")
+                    .find(row => row.startsWith("XSRF-TOKEN="))
+                    .split("=")[1];
+                return xsrfToken;
+            }
+            else {
+                return null;
+            }
+        }
         async function UnstarData(feedTitle, link, button) {
             const data = {
                 feedTitle: feedTitle,
                 feedLink: link
             }
+            var token = await antiforgeryToken();
             fetch('/Unfav', {
                 method: 'POST',
                 headers: {
                     "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val(),
-                    "Content-Type": 'application/json'
+                    "Content-Type": 'application/json',
+                    "X-XSRF-TOKEN": token
                 },
                 body: JSON.stringify(data)
             }).then(response => response.json())
