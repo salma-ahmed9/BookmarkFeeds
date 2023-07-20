@@ -1,22 +1,20 @@
 using DealingWithCookies.Pages;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Antiforgery;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<FavouritesModel>();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 var app = builder.Build();
-var services = new ServiceCollection();
-services.AddSingleton<FavouritesModel>();
-var serviceProvider = services.BuildServiceProvider();
 // Retrieve an instance of FavouritesModel
-var favouritesModel = serviceProvider.GetService<FavouritesModel>();
+var favouritesModel = app.Services.GetService<FavouritesModel>();
 var favouriteFeedList = favouritesModel.FavouriteFeedList;
 
-app.MapPost("/fav", async ([FromBody] RssFeed feed, HttpContext context) => {
+app.MapPost("/fav", [ValidateAntiForgeryToken] async ([FromBody] RssFeed feed, HttpContext context) => {
     string feedTitle = feed.FeedTitle;
     string link = feed.FeedLink;
     string favouriteFeed = context.Request.Cookies["favourites"];
@@ -100,6 +98,13 @@ app.MapPost("/Unfav", async ([FromBody] RssFeed feed, HttpContext context) => {
     });
     var response = new { message = isFavourite.ToString() };
     return new JsonResult(response);
+});
+
+app.MapGet("/antiforgerytoken", (IAntiforgery antiforgery, HttpContext context) =>
+{
+    var tokens = antiforgery.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
+    return Results.Ok();
 });
 
 // Configure the HTTP request pipeline.

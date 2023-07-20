@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -47,16 +48,37 @@
 @section Scripts
 {
     <script>
+      async function antiforgeryToken()
+      {
+        var response = await fetch("/antiforgerytoken", {
+        method: "GET",
+        credentials: 'include'
+        });
+        if(response.ok)
+        {
+           const xsrfToken = document.cookie
+          .split("; ")
+          .find(row => row.startsWith("XSRF-TOKEN="))
+          .split("=")[1];
+           return xsrfToken;
+        }
+        else
+        {
+            return null;
+        }
+      }
       async function postData(feedTitle,link,button) {
           const data = {
               feedTitle: feedTitle,
               feedLink: link
           }
+          var token = await antiforgeryToken();
           fetch('/fav', {
               method: 'POST',
               headers: {
-                  "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val(),
-                  "Content-Type": 'application/json'
+                 "RequestVerificationToken": $('input:hidden[name="__RequestVerificationToken"]').val(),
+                 "Content-Type": 'application/json',
+                 "X-XSRF-TOKEN": token
               },
               body: JSON.stringify(data)
           }).then(response => response.json())
